@@ -3,8 +3,9 @@
 **_TODO_** This README needs work. And we should make sure all our ETL scripts
 have the same README format.
 
-Repo containing the Epi/HAI ETL for a GDPH CRE alert file uploaded to the raw
-Epi/HAI data bucket in CAPE.
+Repo containing the Epi/HAI ETL for a GDPH Carbapenem-resistant
+Enterobacterales (CRE) alert file uploaded to the raw Epi/HAI data bucket in
+CAPE.
 
 The ETL script will extract the tabular data and convert it to a common format
 that will then be written into the clean data bucket for later query.
