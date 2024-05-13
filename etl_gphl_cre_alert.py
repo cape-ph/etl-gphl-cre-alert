@@ -1,3 +1,5 @@
+"""ETL script for raw Epi/HAI CRE alert docx."""
+
 import io
 import sys
 
