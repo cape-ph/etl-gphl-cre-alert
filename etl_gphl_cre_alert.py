@@ -2,6 +2,7 @@ import io
 import sys
 
 import boto3 as boto3
+import dateutil.parser as dparser
 import pandas as pd
 from awsglue.context import GlueContext
 from awsglue.utils import getResolvedOptions
@@ -95,26 +96,26 @@ data = data[2:].reset_index(drop=True)
 #             carrying over, and if it's not part of the AR log, we just don't
 #             include it in the AR query, but we still have it if we end up
 #             needing it for anything else
-interm = pd.DataFrame()
-interm["Mechanism (*Submitters Report)"] = data["Anti-Microbial Resistance RT-PCR"]
-interm["Organism"] = data["Organism ID"]
-interm["Date Received"] = date_received
-interm["Date Reported"] = date_received
-interm["Patient Name"] = data["Patient Name"]
-interm["DOB"] = pd.to_datetime(data["DOB"], errors="coerce")
-interm["Source"] = data["Source"].str.capitalize()
-interm["Date of Collection"] = pd.to_datetime(
+interim = pd.DataFrame()
+interim["Mechanism (*Submitters Report)"] = data["Anti-Microbial Resistance RT-PCR"]
+interim["Organism"] = data["Organism ID"]
+interim["Date Received"] = date_received
+interim["Date Reported"] = date_received
+interim["Patient Name"] = data["Patient Name"]
+interim["DOB"] = pd.to_datetime(data["DOB"], errors="coerce")
+interim["Source"] = data["Source"].str.capitalize()
+interim["Date of Collection"] = pd.to_datetime(
     data["Date of Collection"], errors="coerce"
 )
-interm["Testing Lab"] = "GPHL"
-interm["Facility of Origin"] = data["Received from"]
+interim["Testing Lab"] = "GPHL"
+interim["Facility of Origin"] = data["Received from"]
 
 # write out the transofrmed data
 with io.StringIO() as csv_buff:
     interim.to_csv(csv_buff, index=False)
 
     response = s3_client.put_object(
-        Bucket=CLEAN_BUCKET_NAME, Key=clean_obj_key, Body=csv_buff.getvalue()
+        Bucket=clean_bucket_name, Key=clean_obj_key, Body=csv_buff.getvalue()
     )
 
     status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
