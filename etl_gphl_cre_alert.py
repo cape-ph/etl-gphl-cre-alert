@@ -85,7 +85,7 @@ data = pd.DataFrame(data)
 # grab the alert report date and then drop that row
 date_received = pd.to_datetime(dparser.parse(data.iloc[0, 0], fuzzy=True))
 data.columns = data.loc[1]
-data = data[2:].reset_index(drop=True)
+data[2:].reset_index(drop=True, inplace=True)
 
 # now perform the ETL on the data rows
 # NOTE: Questions about the data:
@@ -105,7 +105,7 @@ interim["Date Received"] = date_received
 interim["Date Reported"] = date_received
 interim["Patient Name"] = data["Patient Name"]
 interim["DOB"] = pd.to_datetime(data["DOB"], errors="coerce")
-interim["Source"] = list(map(lambda x: x.capitalize(), data["Source"]))
+interim["Source"] = data["Source"].str.capitalize()
 interim["Date of Collection"] = pd.to_datetime(
     data["Date of Collection"], errors="coerce"
 )
