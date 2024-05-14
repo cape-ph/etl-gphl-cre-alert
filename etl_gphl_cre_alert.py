@@ -105,7 +105,7 @@ interim["Date Received"] = date_received
 interim["Date Reported"] = date_received
 interim["Patient Name"] = data["Patient Name"]
 interim["DOB"] = pd.to_datetime(data["DOB"], errors="coerce")
-interim["Source"].apply(lambda x: x.capitalize())
+interim["Source"] = list(map(lambda x: x.capitalize(), data["Source"]))
 interim["Date of Collection"] = pd.to_datetime(
     data["Date of Collection"], errors="coerce"
 )
