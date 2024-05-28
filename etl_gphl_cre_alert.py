@@ -9,11 +9,11 @@ import pandas as pd
 from awsglue.context import GlueContext
 from awsglue.utils import getResolvedOptions
 from docx import Document
-from pyspark.context import SparkContext
+from pyspark.sql import SparkSession
 
 # for our purposes here, the spark and glue context are only (currently) needed
 # to get the logger.
-spark_ctx = SparkContext()
+spark_ctx = SparkSession.builder.getOrCreate()  # pyright: ignore
 glue_ctx = GlueContext(spark_ctx)
 logger = glue_ctx.get_logger()
 
@@ -70,22 +70,28 @@ logger.info(f"Obtained object {alert_obj_key} from bucket {raw_bucket_name}.")
 
 # handle the document itself...
 
+# the response should contain a StreamingBody object that needs to be converted
+# to a file like object to make the docx library happy
+f = io.BytesIO(response.get("Body").read())
+document = Document(f)
+
 # NOTE: this document is assumed to contain a single table that needs to be
 #       processed and nothing else. The file consists of:
 #       - a 2 column header row that contains a column (0 index) with the alert
 #         report date, which we need (rest of this row can be ignored)
 #       - another header row that contains all the column names for the table
 #       - rows of data
-document = Document(response.get("Body"))
-
 table = document.tables[0]
 data = [[cell.text for cell in row.cells] for row in table.rows]
 data = pd.DataFrame(data)
 
-# grab the alert report date and then drop that row
+# grab the alert report date
 date_received = pd.to_datetime(dparser.parse(data.iloc[0, 0], fuzzy=True))
+# get the column list
 data.columns = data.loc[1]
-data[2:].reset_index(drop=True, inplace=True)
+# drop the rows we no longer need (date and columns)
+data.drop([0, 1], inplace=True)
+data.reset_index(drop=True, inplace=True)
 
 # now perform the ETL on the data rows
 # NOTE: Questions about the data:
