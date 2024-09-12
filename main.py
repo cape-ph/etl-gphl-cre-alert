@@ -2,6 +2,7 @@
 
 import io
 import sys
+from pathlib import Path
 
 import boto3 as boto3
 import dateutil.parser as dparser
@@ -42,7 +43,7 @@ clean_bucket_name = parameters["CLEAN_BUCKET_NAME"]
 # NOTE: for now we'll take the alert object key and change out the file
 #       extension for the clean data (leaving all namespacing and such). this
 #       will probably need to change
-clean_obj_key = alert_obj_key.replace(".docx", ".csv")
+clean_obj_key = str(Path(alert_obj_key).with_suffix(".csv"))
 
 # NOTE: May need some creds here
 s3_client = boto3.client("s3")
@@ -105,7 +106,9 @@ data.reset_index(drop=True, inplace=True)
 #             include it in the AR query, but we still have it if we end up
 #             needing it for anything else
 interim = pd.DataFrame()
-interim["Mechanism (*Submitters Report)"] = data["Anti-Microbial Resistance RT-PCR"]
+interim["Mechanism (*Submitters Report)"] = data[
+    "Anti-Microbial Resistance RT-PCR"
+]
 interim["Organism"] = data["Organism ID"]
 interim["Date Received"] = date_received
 interim["Date Reported"] = date_received
@@ -119,7 +122,7 @@ interim["Testing Lab"] = "GPHL"
 interim["Facility of Origin"] = data["Received from"]
 interim["State_Lab_ID"] = data["Lab ID"]
 
-# write out the transofrmed data
+# write out the transformed data
 with io.StringIO() as csv_buff:
     interim.to_csv(csv_buff, index=False)
 
